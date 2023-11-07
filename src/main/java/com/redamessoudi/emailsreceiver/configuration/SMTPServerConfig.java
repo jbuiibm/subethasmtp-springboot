@@ -1,5 +1,11 @@
 package com.redamessoudi.emailsreceiver.configuration;
 
+import java.io.InputStream;
+import java.security.KeyStore;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+
 import org.springframework.context.annotation.Configuration;
 import org.subethamail.smtp.auth.EasyAuthenticationHandlerFactory;
 import org.subethamail.smtp.auth.UsernamePasswordValidator;
@@ -14,23 +20,50 @@ import org.subethamail.smtp.server.SMTPServer;
 @Configuration
 public class SMTPServerConfig {
 
-    private final SMTPServer smtpServer;
+    private SMTPServer smtpServer;
     private final SimpleMessageListener marketingMsgListener;
     private final UsernamePasswordValidator authValidator;
     private final EasyAuthenticationHandlerFactory easyAuth;
+    private SSLContext sslContext;
 
     public SMTPServerConfig(SimpleMessageListener marketingMsgListener) {
         authValidator = new SimpleAuthValidatorImpl();
         easyAuth = new EasyAuthenticationHandlerFactory(authValidator);
-        this.marketingMsgListener = marketingMsgListener;
+        this.marketingMsgListener = marketingMsgListener; 
 
+        try{            
+            InputStream keyStoreIS = this.getClass().getResourceAsStream("/keystore");
+            char[] keyStorePassphrase = "subetha".toCharArray();
+            KeyStore ksKeys = KeyStore.getInstance("PKCS12");
+            ksKeys.load(keyStoreIS, keyStorePassphrase);
+
+            // KeyManager decides which key material to use.
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ksKeys, keyStorePassphrase);
+
+
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), null, null);
+        } catch (Exception e) {
+            System.out.println("error initializing sslContext");
+            e.printStackTrace();
+            
+        }
+    
+       
         this.smtpServer = SMTPServer
-                .port(25000)
+                .port(4665)
                 .simpleMessageListener(this.marketingMsgListener)
                 .requireAuth(true)
+                .requireTLS(true)
+                .enableTLS(true)                  
+                .startTlsSocketFactory(sslContext)              
                 .authenticationHandlerFactory(easyAuth)
                 .build();
 
+       
         this.smtpServer.start();
+  
+  
     }
 }
