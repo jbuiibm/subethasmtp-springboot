@@ -31,6 +31,7 @@ public class SMTPServerConfig {
         easyAuth = new EasyAuthenticationHandlerFactory(authValidator);
         this.marketingMsgListener = marketingMsgListener; 
 
+        // jbui - addition to create a dummy keystore
         try{            
             InputStream keyStoreIS = this.getClass().getResourceAsStream("/keystore");
             char[] keyStorePassphrase = "subetha".toCharArray();
@@ -50,7 +51,7 @@ public class SMTPServerConfig {
             
         }
     
-       
+       // jbui - and added TLS parameters and socket factory
         this.smtpServer = SMTPServer
                 .port(4665)
                 .simpleMessageListener(this.marketingMsgListener)
