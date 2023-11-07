@@ -4,7 +4,7 @@ This repository contains example of how to write an application based on Spring 
 ## TLS
 Added TLS support for testing on port 4665 with a dummy cert in keystore  
 Example of Thunderbird account configuration with default password of original redamessoudi project.  
-Port will depends on your setup.  
+Port will depends on your routing setup (here with a NodePort in OCP).  
 ![Thunderbird Account Configuration](thunderbird.png)
 
 ## Article
